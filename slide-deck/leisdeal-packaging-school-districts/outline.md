@@ -86,7 +86,7 @@ Body:
 - Veteran-Owned Small Business (VOSB Certified)
 - U.S. Navy veteran founded and operated
 - 68,000+ orders successfully fulfilled
-- Based in Riverside, California
+- Based in Chino, California
 
 // VISUAL
 Left-aligned text with generous whitespace. The number "68,000+" rendered in large scale as a focal element in blue accent color, with "orders fulfilled" beneath in gray. Three bullet points below in clean list format.
@@ -138,7 +138,7 @@ Body:
 - VOSB Certified — meets government procurement preferences
 - No Minimum Orders — buy exactly what you need
 - GPC Accepted — streamlined purchasing with Government Purchase Card
-- Local Fulfillment — Riverside-based supply chain, faster delivery
+- Local Fulfillment — Chino-based 35,000 sq ft warehouse, faster delivery
 
 // VISUAL
 Four advantages displayed in a clean vertical list. Each item has a short bold title followed by a brief explanation in gray. A single thin blue accent line on the left edge of each item for visual structure. Maximum whitespace between entries.
@@ -210,8 +210,9 @@ Clear call-to-action — make it easy for procurement officers to take the next 
 // KEY CONTENT
 Headline: Let's Get Started
 Body:
-- Website: leisdeal.com
-- Email: info@leisdeal.com
+- Website: www.leisdeal.com
+- Email: lei@leisdeal.com
+- Phone: +1-626-726-7776
 - VOSB-Certified · GPC Accepted · No Minimums
 Closing: Questions? We're here to help.
 

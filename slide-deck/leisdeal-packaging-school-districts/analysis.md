@@ -15,7 +15,7 @@ LEISDEAL is a VOSB-certified, locally-based packaging supplier with 68,000+ orde
 2. 68K orders = proven reliability and track record
 3. No minimum orders = budget-friendly for school districts
 4. GPC acceptance = streamlined purchasing process
-5. Riverside-based = local supply chain advantage
+5. Chino-based = local supply chain advantage (35,000 sq ft warehouse)
 
 ## Call-to-Action
 Contact LEISDEAL to start streamlining your packaging procurement.

@@ -1,0 +1,93 @@
+[
+  {
+    "sku_id": "FN-1001",
+    "category": "fashion_necklace",
+    "requested_status": "live",
+    "exclusivity": "exclusive",
+    "compliance_checks": {
+      "ca_metal_compliance": {
+        "status": "PASS",
+        "evidence_url": "https://docs.leisdeal.com/reports/FN-1001-metal-test.pdf"
+      },
+      "ftc_labeling": {
+        "status": "PASS",
+        "evidence_url": "https://docs.leisdeal.com/labels/FN-1001-ftc.pdf"
+      },
+      "prop65": {
+        "status": "PASS",
+        "evidence_url": "https://docs.leisdeal.com/prop65/FN-1001-warning.pdf"
+      }
+    }
+  },
+  {
+    "sku_id": "FN-1002-no-evidence",
+    "category": "fashion_necklace",
+    "exclusivity": "shared",
+    "compliance_checks": {
+      "ca_metal_compliance": { "status": "PASS" },
+      "ftc_labeling": { "status": "PASS" },
+      "prop65": { "status": "PASS" }
+    }
+  },
+  {
+    "sku_id": "FN-1003-metal-fail",
+    "category": "fashion_necklace",
+    "compliance_checks": {
+      "ca_metal_compliance": { "status": "FAIL", "evidence_url": "https://docs.leisdeal.com/reports/FN-1003.pdf" },
+      "ftc_labeling": { "status": "PASS" },
+      "prop65": { "status": "PASS" }
+    }
+  },
+  {
+    "sku_id": "DT-2001",
+    "category": "designer_toy",
+    "child_facing": false,
+    "exclusivity": "exclusive",
+    "compliance_checks": {
+      "ip_ownership": {
+        "value": "owned_exclusive",
+        "evidence_url": "https://docs.leisdeal.com/ip/DT-2001-agreement.pdf"
+      },
+      "design_clearance": { "status": "PASS", "evidence_url": "https://docs.leisdeal.com/clearance/DT-2001.pdf" },
+      "adult_positioning": { "status": "PASS" },
+      "prop65": { "status": "PASS", "evidence_url": "https://docs.leisdeal.com/prop65/DT-2001.pdf" }
+    }
+  },
+  {
+    "sku_id": "DT-2002-replica",
+    "category": "designer_toy",
+    "child_facing": false,
+    "exclusivity": "shared",
+    "compliance_checks": {
+      "ip_ownership": { "value": "replica" },
+      "design_clearance": { "status": "PASS" },
+      "adult_positioning": { "status": "PASS" },
+      "prop65": { "status": "PASS" }
+    }
+  },
+  {
+    "sku_id": "DT-2003-child-facing-incomplete",
+    "category": "designer_toy",
+    "child_facing": true,
+    "cpsia": { "third_party_test": true, "tracking_label": false, "cpc": false },
+    "compliance_checks": {
+      "ip_ownership": { "value": "factory_original_nonexclusive", "evidence_url": "https://docs.leisdeal.com/ip/DT-2003.pdf" },
+      "design_clearance": { "status": "PASS" },
+      "adult_positioning": { "status": "PASS" },
+      "prop65": { "status": "PASS" }
+    }
+  },
+  {
+    "sku_id": "DT-2004-child-facing-complete",
+    "category": "designer_toy",
+    "child_facing": true,
+    "cpsia": { "third_party_test": true, "tracking_label": true, "cpc": true },
+    "exclusivity": "exclusive",
+    "compliance_checks": {
+      "ip_ownership": { "value": "owned_exclusive", "evidence_url": "https://docs.leisdeal.com/ip/DT-2004.pdf" },
+      "design_clearance": { "status": "PASS", "evidence_url": "https://docs.leisdeal.com/clearance/DT-2004.pdf" },
+      "adult_positioning": { "status": "PASS" },
+      "prop65": { "status": "PASS", "evidence_url": "https://docs.leisdeal.com/prop65/DT-2004.pdf" }
+    }
+  }
+]

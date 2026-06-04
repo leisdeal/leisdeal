@@ -1,0 +1,9 @@
+SQLAlchemy>=2.0,<2.1
+alembic>=1.13
+psycopg[binary]>=3.1
+# API layer (added in increment 2)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+# Dev/test
+pytest>=8.0

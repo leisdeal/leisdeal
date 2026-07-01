@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://leisdeal.local/omega_live_copilot/comment_event.schema.json",
+  "title": "Omega Live Copilot — Ingestion Sidecar Wire Contract (Phase 2)",
+  "description": "Node↔Python message schema for the comment ingestion sidecar (PRD §7.1). PAPER CONTRACT ONLY. The capture method (抓包/OCR/manual) is a black box behind this wire format and is out of scope here — gated on Lei's real 中控 machine and explicit ToS risk acceptance. The core NEVER imports the sidecar; the contract is the message shape + transport + semantics below.",
+  "x-contract-version": 1,
+  "x-transports": {
+    "jsonl": "Sidecar appends one JSON object per line to storage.jsonl_raw_comments; core tails. Durable, replayable, at-least-once. PoC default.",
+    "websocket": "Loopback ws at ingestion.websocket.{host,port}; one JSON object per WS text frame. Best-effort, lower latency.",
+    "manual": "Operator UI emits identical `comment` frames (capture_source='manual'); the 副屏 degrade path (§7.1 failure降级) — guaranteed-shippable, no sidecar."
+  },
+  "x-db-mapping": {
+    "target_table": "comment_log",
+    "note": "Validates against the Phase 1 schema (src/olc/db/schema.sql). Buckets are checked by tests/test_ingestion_contract.py.",
+    "sidecar_to_existing_column": {
+      "captured_at": "ts",
+      "platform": "platform",
+      "room_id": "room_id",
+      "username_hash": "username_hash",
+      "comment_text": "comment_text"
+    },
+    "core_populated_existing_column": [
+      "normalized_text", "matched_faq_id", "risk_level", "match_score",
+      "card_type", "operator_action", "speaker_response", "result", "notes"
+    ],
+    "envelope_not_persisted": ["v", "type"],
+    "requires_phase2_additive_migration": {
+      "session_id": "TEXT — groups comments to a session (sessions.session_id). comment_log has no session_id yet.",
+      "capture_seq": "INTEGER — per-session monotonic; ordering + loss estimation (§7.1⑤⑥).",
+      "platform_msg_id": "TEXT NULL — native id when available; primary dedup key.",
+      "capture_source": "TEXT — live_companion|obs|ocr|manual; provenance.",
+      "ingest_latency_ms": "REAL — core-derived (ingest_at − captured_at); §7.1②. Not a message field."
+    },
+    "migration_status": "PROPOSED — NOT APPLIED. Phase 2 additive migration only; do not alter Phase 1 schema until Gate 1."
+  },
+  "$defs": {
+    "iso8601": {
+      "type": "string",
+      "description": "ISO-8601 timestamp with millisecond precision and timezone offset.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?([+-]\\d{2}:\\d{2}|Z)$"
+    },
+    "platform": {
+      "type": "string",
+      "description": "V1 = douyin only. Enum kept extensible for Phase 2.",
+      "enum": ["douyin"]
+    },
+    "comment": {
+      "type": "object",
+      "description": "A single captured live-room comment. Sidecar fills capture-time fields ONLY; core fills processing fields (see x-db-mapping.core_populated_existing_column). Sidecar MUST NOT send core-populated fields.",
+      "properties": {
+        "v": {"const": 1},
+        "type": {"const": "comment"},
+        "session_id": {"type": "string", "minLength": 1},
+        "capture_seq": {"type": "integer", "minimum": 0, "description": "Per-session monotonic +1 per comment. Seq gaps = lost messages (loss estimate §7.1⑥)."},
+        "captured_at": {"$ref": "#/$defs/iso8601", "description": "When the sidecar captured it; core measures e2e latency from here (§7.1②③)."},
+        "platform": {"$ref": "#/$defs/platform"},
+        "room_id": {"type": "string", "minLength": 1, "description": "Own room only. Core MUST reject room_id ≠ configured own room (§12②/§2)."},
+        "comment_text": {"type": "string", "description": "Raw comment text. Core normalizes; sidecar does not."},
+        "username_hash": {"type": "string", "description": "PREFERRED: sha256(lower(trim(username))+session_salt), 16 hex. Raw username MUST NOT cross IPC (§12③)."},
+        "username_display": {"type": "string", "description": "DISCOURAGED fallback only if source hashing infeasible. Core hashes immediately and drops raw; never persisted."},
+        "platform_msg_id": {"type": ["string", "null"], "description": "Native message id if the capture source exposes one. Primary dedup key."},
+        "capture_source": {"type": "string", "enum": ["live_companion", "obs", "ocr", "manual"]}
+      },
+      "required": ["v", "type", "session_id", "capture_seq", "captured_at", "platform", "room_id", "comment_text"],
+      "additionalProperties": false,
+      "examples": [
+        {
+          "v": 1, "type": "comment", "session_id": "2026-07-05-live-01", "capture_seq": 142,
+          "captured_at": "2026-07-05T20:14:33.512+08:00", "platform": "douyin", "room_id": "own-room-88",
+          "comment_text": "你们能包清关吗", "username_hash": "9f2c1ab77e4d0c31", "platform_msg_id": "dy_abc123",
+          "capture_source": "live_companion"
+        }
+      ]
+    },
+    "session_start": {
+      "type": "object",
+      "properties": {
+        "v": {"const": 1},
+        "type": {"const": "session_start"},
+        "session_id": {"type": "string", "minLength": 1},
+        "platform": {"$ref": "#/$defs/platform"},
+        "room_id": {"type": "string", "minLength": 1},
+        "started_at": {"$ref": "#/$defs/iso8601"},
+        "sidecar_version": {"type": "string"},
+        "resume": {"type": "boolean", "description": "true if this is a reconnect continuation of an existing session_id."}
+      },
+      "required": ["v", "type", "session_id", "platform", "room_id", "started_at"],
+      "additionalProperties": false
+    },
+    "session_end": {
+      "type": "object",
+      "properties": {
+        "v": {"const": 1},
+        "type": {"const": "session_end"},
+        "session_id": {"type": "string", "minLength": 1},
+        "ended_at": {"$ref": "#/$defs/iso8601"},
+        "stats": {
+          "type": "object",
+          "description": "Sidecar's own counters for cross-check against core (dup/loss reconciliation).",
+          "properties": {
+            "captured_count": {"type": "integer", "minimum": 0},
+            "last_capture_seq": {"type": "integer", "minimum": 0},
+            "declared_gaps": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["v", "type", "session_id", "ended_at"],
+      "additionalProperties": false
+    },
+    "heartbeat": {
+      "type": "object",
+      "description": "Liveness. Cadence ≤ reconnect_max_seconds/2. Missing heartbeats > ingestion.reconnect_max_seconds (5s, §7.1④) => core marks link down.",
+      "properties": {
+        "v": {"const": 1},
+        "type": {"const": "heartbeat"},
+        "session_id": {"type": "string", "minLength": 1},
+        "ts": {"$ref": "#/$defs/iso8601"},
+        "seq": {"type": "integer", "minimum": 0, "description": "Echoes the highest capture_seq emitted so far (lets core detect silent loss)."}
+      },
+      "required": ["v", "type", "session_id", "ts"],
+      "additionalProperties": false
+    },
+    "gap": {
+      "type": "object",
+      "description": "Sidecar declares an UNRECOVERABLE capture gap (§7.1④). Core marks a data gap in recap and does NOT assume backfill. This is the honest failure signal, not an error.",
+      "properties": {
+        "v": {"const": 1},
+        "type": {"const": "gap"},
+        "session_id": {"type": "string", "minLength": 1},
+        "from_seq": {"type": ["integer", "null"], "minimum": 0},
+        "to_seq": {"type": ["integer", "null"], "minimum": 0},
+        "from_ts": {"$ref": "#/$defs/iso8601"},
+        "to_ts": {"$ref": "#/$defs/iso8601"},
+        "reason": {"type": "string", "enum": ["reconnect", "buffer_overflow", "capture_error", "unknown"]}
+      },
+      "required": ["v", "type", "session_id", "reason"],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {"$ref": "#/$defs/comment"},
+    {"$ref": "#/$defs/session_start"},
+    {"$ref": "#/$defs/session_end"},
+    {"$ref": "#/$defs/heartbeat"},
+    {"$ref": "#/$defs/gap"}
+  ]
+}

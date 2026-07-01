@@ -49,12 +49,14 @@ Rationale (PRD §7.8.1): cheapest (own mic, local ASR, zero ToS) + guards the he
 - **Status:** implemented (logic verified) · acoustic acceptance PENDING real host-voice stream
 
 ### Phase 2 — Ingestion (§7.1, Gate 1)
-- [ ] 直播伴侣 local-link comment capture PoC (2–4 day timebox for reverse-eng path)
+- [x] **Sidecar wire contract (PAPER)**: `docs/ingestion_contract.md` + `docs/comment_event.schema.json`; Node↔Python message schema/transport/semantics, validated against Phase 1 `comment_log` (`tests/test_ingestion_contract.py`, 7 tests). No capture logic.
+- [ ] 直播伴侣 local-link comment capture PoC (2–4 day timebox for reverse-eng path) — **BLOCKED: Lei ToS acceptance + real 中控 machine**
+- [ ] Additive `comment_log` migration (session_id, capture_seq, platform_msg_id, capture_source, ingest_latency_ms) — proposed in contract §10, apply at implementation
 - [ ] Ingest → SQLite (P95 <500ms) + JSONL sink
 - [ ] Reconnect ≤5s + gap-marking for unrecoverable windows
-- [ ] **Degrade path = shipped V1**: manual副屏 copy → input box → same downstream chain
+- [ ] **Degrade path = shipped V1**: manual副屏 copy → input box → same downstream chain (identical contract, `capture_source=manual`)
 - **Acceptance (§7.1):** ≥2h no drop, e2e <1s, reconnect ≤5s, dup ≤3%, own-room only.
-- **Status:** pending (Gate 1)
+- **Status:** contract drafted (paper) · capture BLOCKED on Lei ToS + real machine (Gate 1)
 
 ### Phase 3 — Comment pipeline (§7.2–7.4)
 - [ ] Cleaning: de-emoji/dedup/merge-similar/high-freq tag (don't drop compliance words)

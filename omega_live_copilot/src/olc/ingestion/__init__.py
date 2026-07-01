@@ -4,19 +4,19 @@ Captures 抖音 comments via the 直播伴侣 local link (own room, own machine 
 Degrade path (= shipped V1): manual 副屏 copy -> input box -> same downstream.
 
 IPC BOUNDARY (per confirmed decision): the 抓包 layer may be a **Node sidecar**
-so it need not be rewritten in Python. The sidecar feeds the Python core through
-one of the config `ingestion.mode` transports, writing this message shape:
+so it need not be rewritten in Python. The core NEVER imports the sidecar; the
+coupling is a wire CONTRACT only.
 
-    {"ts": ISO8601, "platform": "douyin", "room_id": str,
-     "username_hash": str, "comment_text": str}
+  ► Contract (PAPER, drafted): docs/ingestion_contract.md
+  ► Wire schema (authoritative): docs/comment_event.schema.json
+  ► Conformance vs Phase 1 comment_log: tests/test_ingestion_contract.py
 
-  - mode: "jsonl"      -> append lines to storage.jsonl_raw_comments (core tails)
-  - mode: "websocket"  -> local ws at ingestion.websocket.{host,port} (core reads)
-  - mode: "manual"     -> operator pastes into the UI; core ingests directly
+Transports (config `ingestion.mode`): jsonl | websocket | manual — all carry the
+same `comment`/`session_start`/`session_end`/`heartbeat`/`gap` frames.
 
-The core NEVER imports the sidecar; contract = the message shape + transport.
-Acceptance (§7.1): ≥2h no drop, ingest P95<500ms, e2e<1s, reconnect≤5s, dup≤3%,
-own-room only.
+NOT IMPLEMENTED HERE: 抓包 / OCR / WebSocket / capture logic. Blocked on Lei's
+real 中控 machine + explicit ToS risk acceptance (§2, §12②). Acceptance (§7.1):
+≥2h no drop, ingest P95<500ms, e2e<1s, reconnect≤5s, dup≤3%, own-room only.
 """
 
 __all__: list[str] = []

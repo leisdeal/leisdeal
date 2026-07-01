@@ -1,0 +1,53 @@
+# Speaker redline eval set — SEED (PRD §7.8.12).
+#
+# ⚠️ These are SYNTHETIC text cases to validate DETECTION LOGIC only. The real
+#    98% S2/S3 acceptance requires transcripts from real recorded HOST audio
+#    through FunASR (real acoustics, 中英夹杂, noise). Replace/extend this file
+#    with transcripts from a real recorded stream before claiming acceptance.
+#
+# expected_level: S1 | S2 | S3 | none
+#   "none" = safe host speech that must NOT trigger (measures false positives).
+
+cases:
+  # ── S3 严重 (漏报=致命) ───────────────────────────────────────────────────
+  - {text: "这个你放心，我们帮你低报货值，能省不少税", expected_level: S3, note: under-declare}
+  - {text: "报低一点就能少交税，海关那边好过", expected_level: S3, note: under-declare semantic}
+  - {text: "少报关税这块交给我们就行", expected_level: S3, note: under-declare}
+  - {text: "这个产品可以绕过 FDA 直接上架卖", expected_level: S3, note: bypass FDA}
+  - {text: "不用做 FDA 也能卖，避开就好了", expected_level: S3, note: bypass FDA semantic}
+  - {text: "有我们 VOSB 资质保证拿合同，政府单一定中标", expected_level: S3, note: VOSB guarantee}
+  - {text: "开 TikTok 店我们保证店铺通过，包下店", expected_level: S3, note: shop guarantee}
+  - {text: "海关不会查这个的，你放心报", expected_level: S3, note: customs won't check}
+  - {text: "所有进口责任我们负责，出问题都算我们的", expected_level: S3, note: full import liability}
+  - {text: "政府采购包中，这个我们有把握", expected_level: S3, note: gov purchase guarantee}
+
+  # ── S2 危险 (承诺/保证/包办/规避) ─────────────────────────────────────────
+  - {text: "清关你完全不用管，我们包清关包进口", expected_level: S2, note: 包清关}
+  - {text: "关税全包，进口这块我们全接了", expected_level: S2, note: 包关税}
+  - {text: "FDA 包过，这个认证包在我们身上", expected_level: S2, note: 包过FDA}
+  - {text: "FDA 这关我们保证给你过", expected_level: S2, note: FDA semantic}
+  - {text: "这个我打包票，保证过，百分百过", expected_level: S2, note: generic guarantee}
+  - {text: "放心，这关我保证没问题一定能过", expected_level: S2, note: generic guarantee semantic}
+  - {text: "真出问题损失我们全赔，出事我们负责", expected_level: S2, note: full compensation}
+  - {text: "Customs Bond 我们担，海关保证金我们出", expected_level: S2, note: customs bond}
+  - {text: "你要开店的话我们包过店铺没问题", expected_level: S3, note: shop guarantee (包过店铺=S3)}
+  - {text: "这批货的关税可以少报一点点", expected_level: S3, note: 关税可以少报=under-declare S3}
+
+  # ── S1 轻微 (不严谨，未成承诺) ────────────────────────────────────────────
+  - {text: "这个一般没问题，通常都能做", expected_level: S1, note: soft}
+  - {text: "你这个情况基本都能过，应该没问题", expected_level: S1, note: soft}
+  - {text: "这类产品多数情况都行，问题不大", expected_level: S1, note: soft semantic}
+
+  # ── none 安全表达 (不得触发) ──────────────────────────────────────────────
+  - {text: "我们仓库在加州，发货一般两到三天", expected_level: none, note: logistics}
+  - {text: "FBT 和自发货各有适用场景，要看你的品类和体量", expected_level: none, note: boundary-correct}
+  - {text: "价格表可以私信我们领取，我发给你", expected_level: none, note: CTA}
+  - {text: "这个要看具体产品、成分、标签和用途，我不能一概而论", expected_level: none, note: safe boundary}
+  - {text: "VOSB 是退伍军人企业资质，能增强主体可信度", expected_level: none, note: factual VOSB}
+  - {text: "店铺审核结果要看主体、资料和类目，我们只协助准备", expected_level: none, note: safe shop}
+  - {text: "退货赔付要按平台规则和合同条款来", expected_level: none, note: safe returns}
+  - {text: "IOR 涉及主体和进口责任边界，具体要看你的安排", expected_level: none, note: safe IOR}
+  - {text: "我们有六万八千多单的履约经验", expected_level: none, note: track record}
+  - {text: "TikTok Shop 的目录和订单我们可以帮你对接", expected_level: none, note: neutral}
+  - {text: "关税具体多少要按 HS 编码和申报货值算", expected_level: none, note: factual tax}
+  - {text: "这个产品要不要做 FDA 得先确认它的类别", expected_level: none, note: safe FDA question}

@@ -4,7 +4,19 @@ Leisdeal 直播间的**合规雷达 + 高频问题雷达**——不是自动主�
 
 - **Spec (source of truth):** [`PRD_v1.3.md`](./PRD_v1.3.md)
 - **Roadmap:** [`task_plan.md`](./task_plan.md)
-- **Status:** planning — no code yet.
+- **Status:** Phase 1 (§7.8 Speaker Redline Monitor) **implemented + tested** (logic-level);
+  acoustic 98% acceptance PENDING real host-voice audio. Shared layer (config, DB, eval)
+  implemented. Phases 2–5 (comment ingestion/FAQ/UI/recap) are stubs — see `src/olc/*/__init__.py`.
+
+## Quickstart
+```bash
+pip install -e '.[dev]'            # PyYAML + numpy + sqlite-vec (core needs only PyYAML)
+python -m unittest discover -s tests    # 26 tests
+python scripts/run_speaker_eval.py      # detector eval report
+# Speaker monitor over injected transcript (no audio deps):
+python -m olc.speaker_monitor.cli --engine mock --transcript utterances.txt --recap
+```
+See [`src/olc/speaker_monitor/README.md`](./src/olc/speaker_monitor/README.md) for realtime/offline modes.
 
 ## What V1 does
 

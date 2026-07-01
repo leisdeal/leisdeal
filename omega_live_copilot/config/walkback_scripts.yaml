@@ -1,0 +1,52 @@
+# Walk-back scripts — Lei-gated (PRD §7.8.9).
+#
+# ⚠️  These are DRAFT templates. A script is only surfaced to the host as a
+#     ready-to-read auto-suggestion when `approved_by_lei: true`. Until then the
+#     monitor shows it marked DRAFT — because an AI-written correction that bends
+#     the compliance boundary is itself a new live-broadcast liability (§7.8.9).
+#
+#     The GATE is enforced in code (olc/speaker_monitor/walkback.py), not by
+#     convention. Set approved_by_lei: true ONLY after Lei signs off the wording.
+#
+# Keyed by `category` (matches redline_words.yaml entries).
+
+meta:
+  version: "0.1-draft"
+  owner: "Lei"
+  reviewed_at: null
+
+# Generic safe fallback shown whenever a category has no approved script yet.
+# This is intentionally non-committal and does NOT itself assert any boundary
+# claim — it just redirects. Kept approved because it makes no promise.
+fallback:
+  approved_by_lei: true
+  text: "这个问题涉及主体、产品、文件和责任边界，我不能在直播间直接下结论。可以私信我们，按你的具体情况判断路径。"
+
+scripts:
+  ior_customs:
+    approved_by_lei: false
+    text: "IOR 和清关责任涉及主体、产品、文件和进口责任边界，我们不能在直播间说包清关或包进口，具体要看你的产品和主体安排。"
+
+  fda:
+    approved_by_lei: false
+    text: "FDA 要看产品类别、成分、标签、用途和进口文件，我们不能承诺包过，只能协助判断路径和风险点。"
+
+  govpurchase_vosb:
+    approved_by_lei: false
+    text: "VOSB 是美国退伍军人企业资质，能增强主体可信度，但不能保证拿政府合同，也不替代产品、价格、交付和合规要求。"
+
+  tiktok_shop:
+    approved_by_lei: false
+    text: "店铺申请要看主体、资料、类目和平台审核结果，我们协助准备和路径判断，但不能保证一定通过。"
+
+  tax_valuation:
+    approved_by_lei: false
+    text: ""   # no draft — high legal exposure; Lei must author from scratch
+
+  generic_promise:
+    approved_by_lei: false
+    text: "这个我不能打包票，具体要看你的产品、资料和实际审核，我们能做的是协助判断路径和风险，不能保证结果。"
+
+  soft_boundary:
+    approved_by_lei: false
+    text: "补一句边界：这个要看具体情况，不能一概而论。"

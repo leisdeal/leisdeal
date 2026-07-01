@@ -1,0 +1,122 @@
+# Speaker Redline word list — SEED set (PRD §7.8.5 / §7.8.6).
+#
+# ⚠️  ALL entries and any NEW word require Lei review (PRD §7.8.12 合规).
+#     `approved_by_lei: false` = still ACTIVE for detection (safety-first: we
+#     never suppress a redline just because review is pending), but flagged in
+#     recap so Lei can confirm/curate. Detection err on the side of catching.
+#
+# Sources to merge (§7.8.5): 演讲红线清单 v1.0 + L3 触发清单 + FAQ forbidden_claims
+#                            + 复盘新增危险表达.
+#
+# Schema per entry:
+#   id:        stable slug
+#   category:  routes to walk-back script (config/walkback_scripts.yaml)
+#   level:     S1 | S2 | S3   (§7.8.6)
+#   phrases:   surface strings; matched against space-stripped normalized text
+#   aliases:   ASR mis-hearings / spacing / near-homophone variants
+#   regex:     optional; matched against normalized text
+#   semantic:  optional paraphrase examples for the embedding fallback layer
+#   approved_by_lei: review status
+#
+# Levels: S1 轻微(不严谨未承诺) · S2 危险(承诺/保证/包办/规避) · S3 严重(可能违法/规避监管/虚假承诺/政采误导)
+
+meta:
+  version: "0.1-seed"
+  owner: "Lei"
+  last_reviewed_at: null
+
+entries:
+  # ── IOR / 清关 ────────────────────────────────────────────────────────────
+  - id: bao_qingguan
+    category: ior_customs
+    level: S2
+    phrases: ["包清关", "包进口", "包关税", "清关包过", "进口全包"]
+    aliases: ["包 清关", "全包清关", "关税全包"]
+    semantic: ["清关这块你完全不用管", "进口的事我们全接了"]
+    approved_by_lei: false
+  - id: ior_full_liability
+    category: ior_customs
+    level: S3
+    phrases: ["我们负责全部进口责任", "进口责任全部我们担", "所有进口责任我们负责"]
+    aliases: ["进口责任全我们", "全部进口责任我方承担"]
+    semantic: ["出了进口问题都算我们的", "进口这边所有责任我们兜"]
+    approved_by_lei: false
+  - id: customs_bond_cover
+    category: ior_customs
+    level: S2
+    phrases: ["Customs Bond 我们担", "关税保证金我们出", "海关保证金包了"]
+    aliases: ["bond 我们担", "海关 bond 我们出"]
+    approved_by_lei: false
+
+  # ── 关税 / 货值 ───────────────────────────────────────────────────────────
+  - id: under_declare_tax
+    category: tax_valuation
+    level: S3
+    phrases: ["少报关税", "低报货值", "帮你低报", "帮你压低货值", "关税可以少报", "税可以这样避", "怎么避税"]
+    aliases: ["少 报 关税", "低 报 货值", "把货值报低", "货值报低点"]
+    semantic: ["报低一点就能少交税", "申报的时候写少一点", "把价格做低海关那边好过"]
+    approved_by_lei: false
+  - id: customs_wont_check
+    category: tax_valuation
+    level: S3
+    phrases: ["海关不会查", "海关查不到", "海关不查这个"]
+    aliases: ["海关 不会 查", "海关根本不查"]
+    semantic: ["这个海关一般不管", "海关不会盯这块"]
+    approved_by_lei: false
+
+  # ── FDA ──────────────────────────────────────────────────────────────────
+  - id: bao_fda
+    category: fda
+    level: S2
+    phrases: ["包过 FDA", "包 FDA", "FDA 包过", "FDA 保证过", "FDA 一定过"]
+    aliases: ["包过fda", "fda 包过", "包过 f d a", "FDA 肯定过"]
+    semantic: ["FDA 这关我们保证给你过", "FDA 认证包在我们身上"]
+    approved_by_lei: false
+  - id: bypass_fda
+    category: fda
+    level: S3
+    phrases: ["绕过 FDA", "不用管 FDA", "避开 FDA"]
+    aliases: ["绕过fda", "躲开 FDA", "不走 FDA"]
+    semantic: ["不用做 FDA 也能卖", "FDA 可以不管直接上"]
+    approved_by_lei: false
+
+  # ── 政府采购 / VOSB ───────────────────────────────────────────────────────
+  - id: vosb_guarantee_contract
+    category: govpurchase_vosb
+    level: S3
+    phrases: ["VOSB 保证拿合同", "VOSB 一定中标", "VOSB 一定能拿政府单", "VOSB 保证中标", "政府采购包中"]
+    aliases: ["vosb 保证拿单", "有 VOSB 就一定中", "vosb 一定拿下政府单"]
+    semantic: ["有退伍军人资质政府单稳拿", "VOSB 资质保证你中标"]
+    approved_by_lei: false
+
+  # ── 店铺 / 平台 ───────────────────────────────────────────────────────────
+  - id: guarantee_shop_pass
+    category: tiktok_shop
+    level: S3
+    phrases: ["保证店铺通过", "包过店铺", "店铺一定过", "保证下店", "包下店"]
+    aliases: ["店铺 保证 通过", "开店保证过", "店铺肯定能过"]
+    semantic: ["店铺审核我们保证给你过", "开 TikTok 店包在我们身上一定下"]
+    approved_by_lei: false
+
+  # ── 通用承诺 / 兜底 ───────────────────────────────────────────────────────
+  - id: generic_guarantee_pass
+    category: generic_promise
+    level: S2
+    phrases: ["保证过", "包过", "保证通过", "一定能过", "肯定能过", "百分百过"]
+    aliases: ["保证 过", "包 过", "百分之百过", "100% 过"]
+    semantic: ["这个我打包票能过", "这关我保证没问题"]
+    approved_by_lei: false
+  - id: full_compensation
+    category: generic_promise
+    level: S2
+    phrases: ["出问题我们全赔", "出问题我们全部负责", "有问题全额赔付", "出事我们负责"]
+    aliases: ["出问题 全赔", "有问题我们全担", "出了事全算我们的"]
+    semantic: ["真出问题损失我们全兜", "赔偿这块你放心全我们扛"]
+    approved_by_lei: false
+  - id: soft_generally_fine
+    category: soft_boundary
+    level: S1
+    phrases: ["一般没问题", "通常都能做", "基本都能过", "应该没问题"]
+    aliases: ["一般 没问题", "大概率能过"]
+    semantic: ["这个通常问题不大", "多数情况都行"]
+    approved_by_lei: false

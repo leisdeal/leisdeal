@@ -1,0 +1,114 @@
+# Omega Live Copilot — default config.
+# All model IDs, ASR engines, and thresholds are config-driven (PRD §7.6 / §11).
+# NEVER hard-code model IDs in source. Capability tiers below map to concrete IDs.
+
+# ── Model capability tiers (PRD §11) ────────────────────────────────────────
+# Tiers are capability slots, not fixed versions. Fill the concrete IDs from
+# Omega's currently-available models. Left blank here on purpose.
+models:
+  haiku:  ""   # batch classify / recap draft
+  sonnet: ""   # long-tail reference / recap generation
+  opus:   ""   # high-risk script review / redline escalation
+  provider: "omega"   # resolved via Omega runtime; see olc/models.py
+
+# ── Storage (PRD §11) ───────────────────────────────────────────────────────
+storage:
+  sqlite_path: "data/live/copilot.db"     # FAQ / logs / recap / speaker events
+  jsonl_raw_comments: "data/live/comments.jsonl"   # raw comment sink (Phase 2)
+  vector:
+    backend: "sqlite-vec"   # same SQLite, no extra service
+    dim: 1024               # embedding dim for FAQ vectors (Phase 3)
+
+# ── Ingestion (Phase 2 — STUB) ──────────────────────────────────────────────
+# IPC boundary so a Node 抓包 sidecar can feed the Python core without being
+# rewritten in Python. Sidecar writes to one of these; core reads.
+ingestion:
+  mode: "manual"          # manual | jsonl | websocket   (manual = 副屏 degrade path)
+  jsonl_path: "data/live/comments.jsonl"
+  websocket:
+    host: "127.0.0.1"
+    port: 8787
+  reconnect_max_seconds: 5   # PRD §7.1 ④
+
+# ── Speaker Redline Monitor (§7.8 — IMPLEMENTED) ────────────────────────────
+speaker_monitor:
+  enabled: true
+
+  asr:
+    # Swappable engine. Primary = FunASR streaming Paraformer.
+    engine: "funasr"        # funasr | whisper_offline | mock
+    language: "zh"          # 普通话 + 中英夹杂
+    sample_rate: 16000
+    chunk_ms: 300           # streaming chunk size
+    # Redline vocab injected as ASR hotwords to maximize red-line-phrase recall
+    # (the ONLY hard ASR metric — PRD §7.8.12 ASR 口径). Loaded from redline_words.yaml.
+    use_redline_hotwords: true
+    hotword_weight: 20.0
+    funasr:
+      model: "paraformer-zh-streaming"   # capability slot; concrete rev via runtime
+      vad_model: "fsmn-vad"
+      punc_model: ""        # punctuation optional; not on the hot path
+      device: "cpu"         # set "cuda" on the 中控 machine if available
+    whisper_offline:        # No-Go 离线复盘 ONLY — never real-time
+      model: "large-v3"
+      compute_type: "int8"
+
+  detector:
+    # Layer 1 (rule) owns recall and is dependency-free. Layer 2 (embedding)
+    # catches paraphrases. Safety path never relies on an LLM (PRD §7.8.4).
+    wordlist_path: "config/redline_words.yaml"
+    semantic:
+      enabled: true
+      provider: "ngram"     # ngram (dependency-free default) | <model-slot>
+      char_ngram: 3
+      similarity_threshold: 0.62
+    # Detect only on final ASR segments in V1 (partials churn); configurable.
+    detect_on_partials: false
+
+  thresholds:
+    # Recall targets (PRD §7.8.12). These are ACCEPTANCE targets, verified by
+    # eval on real recorded host audio — NOT knobs to lower. Lei may raise.
+    recall_s2_s3_target: 0.98
+    recall_s1_target: 0.90
+    # Operator-noise guard (§7.8.12 ③): clear false-positives/hour over this →
+    # enter wordlist/threshold tuning. Not a Go/No-Go gate.
+    false_positive_per_hour_soft_cap: 12
+
+  latency_targets_ms:       # PRD §7.8.8
+    asr_p95: 800
+    detect_p95: 200
+    display_p95: 200
+    end_to_end_p95: 1200
+
+  alert:
+    channels: ["console"]   # V1 = A 中控屏. B 耳返 optional, not blocking (§7.8.7)
+    earpiece:
+      enabled: false
+
+  walkback:
+    # Lei-gated. Unapproved scripts are surfaced as DRAFT only, never as
+    # ready-to-read auto-suggestions (PRD §7.8.9).
+    path: "config/walkback_scripts.yaml"
+    require_lei_approval: true
+
+  recap:
+    include_s1_in_recap: false   # S2/S3 always included; S1 optional
+    forbid_reclip_levels: ["S3"] # §7.8.6: S3 segments 禁止二次剪辑发布
+
+  audio_retention:
+    # PRD §7.8.3 / §12 ⑧: store ONLY redline-hit segment + context, never full session.
+    store_full_session: false
+    context_window_seconds: 8
+
+# ── FAQ / comment redline (Phase 3 — STUB, blocked on ops material) ─────────
+faq_retrieval:
+  top1_target: 0.85
+  response_p95_ms: 300
+redline_comment:
+  recall_target: 0.98
+  red_card_share_soft_cap: 0.15   # §7.4 ②
+
+# ── Recap (§7.7 — STUB except speaker section hook) ─────────────────────────
+recap:
+  generate_within_minutes: 5
+  push: "telegram"      # reuse Omega Telegram

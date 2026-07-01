@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Local data — never commit live comment logs, audio, or DBs (PRD §12: local-only)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+data/live/
+data/audio/
+data/recap_out/
+*.jsonl
+!data/eval/**/*.jsonl
+
+# Audio artifacts (speaker monitor stores only redline segments locally; never commit)
+*.wav
+*.mp3
+*.flac
+
+# Eval outputs
+eval_out/

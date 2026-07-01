@@ -31,18 +31,21 @@ Phase 0 — Foundations (not started). **Blocked on operational deliverables (se
 - [ ] Redline seed word list scaffold (marked "pending Lei review")
 - **Status:** pending
 
-### Phase 1 — Speaker Redline Monitor (§7.8) — *candidate first mover*
+### Phase 1 — Speaker Redline Monitor (§7.8) — *IMPLEMENTED (logic), acoustic PENDING*
 Rationale (PRD §7.8.1): cheapest (own mic, local ASR, zero ToS) + guards the heaviest liability + fully independent of comment ingestion. Can ship before Gate 1.
-- [ ] Local streaming ASR PoC (普通话 + 中英夹杂), engine via config
-- [ ] Text normalize → rule match (seed words) → embedding/intent fallback
-- [ ] S1/S2/S3 classifier (§7.8.6)
-- [ ] Alert channel A: 中控屏 red bar (hit word / S-level / walk-back / ts / recap flag)
-- [ ] Walk-back script library (§7.8.9) — **drafts only, gated on Lei review**
-- [ ] `speaker_redline_events` logging + walk-back state
-- [ ] Recap section "主播红线表达监控" (§7.8.11)
-- [ ] Offline fallback mode (录播 → ASR → redline scan) — retained even if realtime fails
-- **Acceptance (§7.8.12):** ≥2h continuous; e2e P95 <1.2s; S2/S3 recall ≥98%, S1 ≥90%; S3 miss = fatal; 100% events logged w/ walk-back; runs with all comment ingestion off.
-- **Status:** pending
+- [x] Streaming ASR interface + FunASR Paraformer engine (hotwords from redline vocab), engine via config
+- [x] Text normalize → rule match (seed words) → embedding/intent (ngram) fallback
+- [x] S1/S2/S3 classifier (§7.8.6), S3 priority over S2
+- [x] Alert channel A: 中控屏 red bar (hit word / S-level / walk-back / ts / recap / 禁剪 flag)
+- [x] Walk-back script library (§7.8.9) — **Lei-gated: unapproved never served as ready-to-read**
+- [x] `speaker_redline_events` logging + walk-back state (100% logging even if alert fails)
+- [x] Recap section "主播红线表达监控" (§7.8.11)
+- [x] Offline fallback engine (Whisper) wired for 录播 → ASR → redline scan (No-Go 离线复盘)
+- [x] Eval harness + synthetic seed set + `unittest` suite (26 tests green)
+- [ ] **PENDING (needs real env):** FunASR live run over real recorded host voice; ≥2h soak; e2e P95 <1.2s on real audio; **98% S2/S3 acceptance on real acoustics** (sandbox has no FunASR/TTS)
+- [ ] **PENDING (Lei):** approve/curate redline word list + walk-back scripts (all start `approved_by_lei: false`)
+- **Self-test (logic-level, sandbox):** S1/S2/S3 recall 100% on 35-case synthetic set, 0 FP, detect P95 0.24ms. Acoustic recall = PENDING real audio.
+- **Status:** implemented (logic verified) · acoustic acceptance PENDING real host-voice stream
 
 ### Phase 2 — Ingestion (§7.1, Gate 1)
 - [ ] 直播伴侣 local-link comment capture PoC (2–4 day timebox for reverse-eng path)
@@ -96,8 +99,20 @@ Dev spins idle without ①②⑤:
 |-------|---------|------------|
 | (none yet) | - | - |
 
-## Open Questions for Lei / stakeholders
-- Which build target first: confirm Speaker Monitor (Phase 1) vs. Ingestion (Phase 2)?
-- Language/runtime preference for the codebase (Python assumed given ASR/embedding/SQLite ecosystem)?
-- ASR engine preference (local streaming — e.g. FunASR/Whisper-streaming/Paraformer) — latency vs. privacy tradeoff?
-- Vector store choice (sqlite-vec / Chroma / FAISS)?
+## Confirmed Decisions (locked)
+| Decision | Value |
+|----------|-------|
+| First build | **Speaker Monitor (§7.8), Phase 1.** Ingestion = Phase 2 |
+| Runtime | Python for core + Phase 1. Config/IPC boundary designed so a **Node ingestion sidecar** can plug in for Phase 2 — 抓包 layer not forced into Python |
+| ASR primary | **FunASR streaming Paraformer**, behind swappable `ASREngine` interface. Redline vocab used as **hotwords** to maximize red-line-phrase recall (the one hard metric) |
+| ASR fallback | Whisper-family = **offline-only** (No-Go 离线复盘 mode), never real-time |
+| Vector store | **sqlite-vec** (same SQLite, no extra service). Revisit only if FAQ grows to thousands |
+| Walk-back scripts | **Lei-gated config file** (`config/walkback_scripts.yaml`), not hardcoded. Mechanism built, content slots left `approved_by_lei: false` |
+| Self-test | speaker_monitor tested on simulated streamed transcripts (+ TTS synth script for real envs). **98% S2/S3 recall acceptance = PENDING real recorded host-voice stream** — TTS/logic tests validate detection logic only |
+
+## Scaffold scope (this build)
+- IMPLEMENT: shared layer (config, SQLite schemas incl. `speaker_redline_events`, eval harness) + `speaker_monitor/` end-to-end.
+- STUB: `ingestion/ normalizer/ retrieval/ redline/ ui_api/ recap/` (FAQ/redline retrieval blocked on ops material — no FAQ answers, no eval set yet).
+
+## Environment notes (sandbox)
+- Python 3.11, PyYAML present; numpy + sqlite-vec installable. **No TTS binary / no FunASR** in sandbox → acoustic loop not runnable here; detection logic + eval run dependency-free via `unittest`.

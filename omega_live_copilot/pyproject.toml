@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omega-live-copilot"
+version = "0.1.0"
+description = "Leisdeal Live Copilot — 直播合规雷达 + 高频问题雷达 (V1). Phase 1 = Speaker Redline Monitor."
+requires-python = ">=3.10"
+# Core runtime deps kept minimal so the detection logic runs dependency-free.
+dependencies = [
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+# Semantic fallback + eval math. numpy is a light wheel; kept optional so the
+# rule layer (which owns the hard recall metric) never depends on it.
+semantic = ["numpy>=1.24"]
+# FAQ vector store (Phase 3). Same SQLite, no extra service.
+vector = ["sqlite-vec>=0.1.0"]
+# Realtime ASR — FunASR streaming Paraformer (primary). Heavy (torch); install
+# only in the live/中控 machine, NOT required for tests or logic validation.
+asr = ["funasr>=1.0", "torch", "soundfile", "numpy>=1.24"]
+# Offline-only fallback for No-Go 离线复盘 mode. Never used real-time.
+asr_offline = ["faster-whisper>=1.0", "soundfile"]
+dev = ["numpy>=1.24", "sqlite-vec>=0.1.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+olc-speaker-monitor = "olc.speaker_monitor.cli:main"
+olc-init-db = "olc.db.cli:main"

@@ -54,8 +54,22 @@ python -m olc.speaker_monitor.cli --engine whisper_offline --audio recording.wav
   recorded host-voice stream through FunASR (real acoustics, 中英夹杂, noise).
   TTS/text validates detection logic only. See `scripts/synth_speaker_testset.py`.
 
-## Known limitation (tracked)
-The rule layer matches phrases regardless of negation/quotation — e.g. a host
-reading a walk-back that *contains* a banned phrase ("我们不能承诺**包过**") will
-re-trigger. This is intentional (safety-first: re-alert beats miss), but a
-negation/quotation guard is a candidate refinement once real-audio FP data exists.
+## Walk-back echo guard (`guard.py`, §7.8.9)
+The rule layer fires on a banned phrase **regardless of negation/quotation** —
+and that stays, because spontaneous 「这个不用担心，包过」 (否定壳+承诺核) is the
+most dangerous pattern. The one exception, handled by `WalkbackEchoGuard`, is the
+system biting its own tail: it serves an approved walk-back → the host reads it →
+that approved sentence contains a banned phrase → it would alarm at the exact
+moment of correct self-correction (alert fatigue → erodes the recall line).
+
+Suppression is narrow — ALL three required:
+1. an approved walk-back was served within `guard.walkback_echo.window_seconds`,
+2. the segment is a read-back of it (n-gram coverage ≥ threshold), and
+3. the matched phrase is contained in that served text.
+
+A fresh promise added in the same breath is not in the served text → it still
+fires. Recognizing the echo also auto-marks the originating event
+`speaker_corrected=1`, so the recap counts a correct read-back as a walk-back,
+**not** a fresh violation (keeps §7.8.11 self-correction data clean). This is a
+structural self-trigger (serve A → read A → A contains phrase), fixed on paper —
+not something that needed real-audio data to reveal.

@@ -53,6 +53,17 @@ speaker_monitor:
       model: "large-v3"
       compute_type: "int8"
 
+  guard:
+    # Walk-back echo guard (§7.8.9) — NARROW scope. Suppresses ONLY the system
+    # self-triggering when the host reads back an approved walk-back that itself
+    # contains a banned phrase (e.g. 「我们不能承诺包过」). This is NOT a general
+    # negation exemption: spontaneous 否定壳+承诺核 (「这个不用担心，包过」) still fires.
+    walkback_echo:
+      enabled: true
+      window_seconds: 20        # host expected to read the served walk-back within this
+      similarity_threshold: 0.62  # how much of the segment must be the served text
+      min_chars: 8              # ignore tiny segments (avoid spurious echo match)
+
   detector:
     # Layer 1 (rule) owns recall and is dependency-free. Layer 2 (embedding)
     # catches paraphrases. Safety path never relies on an LLM (PRD §7.8.4).

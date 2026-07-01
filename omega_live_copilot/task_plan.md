@@ -41,7 +41,8 @@ Rationale (PRD §7.8.1): cheapest (own mic, local ASR, zero ToS) + guards the he
 - [x] `speaker_redline_events` logging + walk-back state (100% logging even if alert fails)
 - [x] Recap section "主播红线表达监控" (§7.8.11)
 - [x] Offline fallback engine (Whisper) wired for 录播 → ASR → redline scan (No-Go 离线复盘)
-- [x] Eval harness + synthetic seed set + `unittest` suite (26 tests green)
+- [x] Walk-back echo guard (§7.8.9): suppresses ONLY the self-trigger from the host reading back an approved walk-back (3 conditions); spontaneous 否定壳+承诺核 still fires; echo auto-marks origin `speaker_corrected=1` so recap 自我纠偏 data stays clean
+- [x] Eval harness + synthetic seed set + `unittest` suite (32 tests green)
 - [ ] **PENDING (needs real env):** FunASR live run over real recorded host voice; ≥2h soak; e2e P95 <1.2s on real audio; **98% S2/S3 acceptance on real acoustics** (sandbox has no FunASR/TTS)
 - [ ] **PENDING (Lei):** approve/curate redline word list + walk-back scripts (all start `approved_by_lei: false`)
 - **Self-test (logic-level, sandbox):** S1/S2/S3 recall 100% on 35-case synthetic set, 0 FP, detect P95 0.24ms. Acoustic recall = PENDING real audio.
